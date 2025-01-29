@@ -12,7 +12,7 @@ import {fromLonLat, toLonLat} from 'ol/proj.js';
 import {toStringHDMS} from 'ol/coordinate';
 import Overlay from 'ol/Overlay';
 import { apply } from 'ol-mapbox-style';
-import data from './airline_routes.json' assert { type: 'json' };
+import data from './public/airline_routes.json' assert { type: 'json' };
 import { Style, Circle as CircleStyle, Fill, Stroke, Icon } from 'ol/style';
 import arc from 'arc';
 import LineString from 'ol/geom/LineString.js';
@@ -130,7 +130,7 @@ const dynamicStyleFunction = () => {
   return new Style({
     image: new Icon({
       scale: radius / 10,
-      src: 'PiktogrammeWebkarte.png',
+      src: 'public/PiktogrammeWebkarte.png',
     }),
   });
 };
