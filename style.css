@@ -1,0 +1,143 @@
+@import "node_modules/ol/ol.css";
+
+html, body {
+  margin: 0;
+  font-family: 'Bahnschrift', sans-serif;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
+  width: 100vw;
+  min-width: 100vw;
+  max-width: 100vw;
+}
+
+#Titel {
+  flex-grow: 0;
+  position: relative;
+  top: 0;
+  width: 100%;
+  height: 2.8em;
+  background-color: #000;
+  box-shadow: 0 2px 20px #000;
+  color: #fff;
+  padding: 5px;
+  margin: 0px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+#Titel::before {
+	-moz-box-shadow: 0 2px 20px #000;
+	-webkit-box-shadow: 0 2px 20px #000;
+	box-shadow: 0 2px 20px #000;
+	z-index: 1001;
+	content: '';
+	position: absolute;
+	pointer-events: none;
+	top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+header h1 {
+font-size: 15px;
+font-weight: lighter;
+letter-spacing: 7px;
+}
+
+#map {
+  flex-grow: 1;
+}
+
+.ol-attribution ul {
+  background-color: rgba(255, 255, 255, 0);
+  position: fixed;
+  top: 1.4em;
+  right: 2.4em;
+  bottom: auto;
+  color: white;
+}
+
+.ol-attribution button {
+  position: fixed;
+  top: 0.8em;
+  bottom: auto;
+  right: 0.5em;
+  background-image: url('Infobutton.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center; 
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  text-indent: -9999px !important; /* Versteckt das "i" */
+}
+
+#Routendarstellung {
+  position: fixed;
+  top: 4em;
+  right: 1em;
+  background-color: rgba(255, 255, 255);
+  padding: 20px;
+  border-radius: 8px;
+  display: none;
+  z-index: 10;
+}
+
+#airportName {
+  margin: 0;
+  font-family: 'Bahnschrift', sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+#closeButton {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+#search-container {
+  position: absolute;
+  top: 55px;
+  left: 40px;
+  z-index: 1000;
+  background: white;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+#search-input {
+  width: 300px;
+  padding: 5px;
+}
+
+#search-results {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.search-item {
+  padding: 5px;
+  cursor: pointer;
+}
+
+.search-item:hover {
+  background: #f0f0f0;
+}
