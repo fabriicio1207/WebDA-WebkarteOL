@@ -71,7 +71,7 @@ letter-spacing: 7px;
   top: 0.8em;
   bottom: auto;
   right: 0.5em;
-  background-image: url('public/Infobutton.png');
+  background-image: url('./Infobutton.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center; 

@@ -12,7 +12,7 @@ import {fromLonLat, toLonLat} from 'ol/proj.js';
 import {toStringHDMS} from 'ol/coordinate';
 import Overlay from 'ol/Overlay';
 import { apply } from 'ol-mapbox-style';
-import data from './public/airline_routes.json' assert { type: 'json' };
+import data from './data/airline_routes.json' assert { type: 'json' };
 import { Style, Circle as CircleStyle, Fill, Stroke, Icon } from 'ol/style';
 import arc from 'arc';
 import LineString from 'ol/geom/LineString.js';
@@ -143,7 +143,7 @@ map.on('pointermove', function (event) {
 const airportLayer = new VectorLayer({
   source: new VectorSource({
     features: airportFeatures, 
-    attributions: "test"
+    attributions: "Routendaten" 
   }),
   style: dynamicStyleFunction 
 });
@@ -291,10 +291,10 @@ map.on('singleclick', function (event) {
       const routes = filteredRoutes.filter(route => route.iata === airportIATA);
 
       const airlineStyles = {
-        LX: `https://api.maptiler.com/maps/8d0dabb7-9177-4bbf-ba93-f110c7b28c46/style.json?key=${key}`,
-        WK: `https://api.maptiler.com/maps/e4659f80-8c35-463e-9523-f4d21200a913/style.json?key=${key}`,
         "2L": `https://api.maptiler.com/maps/65d156a8-af46-46f7-ad98-ff3463fe78fb/style.json?key=${key}`,
         GM: `https://api.maptiler.com/maps/e0ba9cbb-7bd6-4305-9385-717416b48101/style.json?key=${key}`,
+        WK: `https://api.maptiler.com/maps/e4659f80-8c35-463e-9523-f4d21200a913/style.json?key=${key}`,
+        LX: `https://api.maptiler.com/maps/8d0dabb7-9177-4bbf-ba93-f110c7b28c46/style.json?key=${key}`,
       };
 
       // Standardkartenstil
