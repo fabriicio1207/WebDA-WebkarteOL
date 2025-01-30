@@ -1,18 +1,11 @@
 # OpenLayers + Vite
 
-This example demonstrates how the `ol` package can be used with [Vite](https://vitejs.dev/).
+Willkommen zur Webkarte Schweizer Flugrouten
 
-To get started, run the following (requires Node 14+):
+Erstellt von Fabrice Hirsiger, GMK21 im Rahmen des BBZH-Faches WebDA, 2024-2025
 
-    npx create-ol-app my-app --template vite
+Daten von:  https://github.com/Jonty/airline-route-data?tab=readme-ov-file
+            https://www.maptiler.com/copyright/
+            https://www.openstreetmap.org/copyright
 
-Then change into your new `my-app` directory and start a development server (available at http://localhost:5173):
-
-    cd my-app
-    npm start
-
-To generate a build ready for production:
-
-    npm run build
-
-Then deploy the contents of the `dist` directory to your server.  You can also run `npm run serve` to serve the results of the `dist` directory for preview.
+Bei Fragen zur Nutzung steht folgender Kontakt zur Verfügung: fabrice.hirsiger@student.bbzh.ch
