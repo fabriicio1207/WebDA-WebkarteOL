@@ -1,22 +1,17 @@
 import './style.css';
 import {Map, View} from 'ol';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
-import XYZSource from 'ol/source/XYZ';
 import VectorSource from 'ol/source/Vector';
 import { Point } from 'ol/geom';
 import { Feature } from 'ol';
-import GeoJSON from 'ol/format/GeoJSON';
 import {fromLonLat, toLonLat} from 'ol/proj.js';
-import {toStringHDMS} from 'ol/coordinate';
-import Overlay from 'ol/Overlay';
 import { apply } from 'ol-mapbox-style';
 import data from './data/airline_routes.json' assert { type: 'json' };
-import { Style, Circle as CircleStyle, Fill, Stroke, Icon } from 'ol/style';
+import { Style, Circle as CircleStyle, Stroke, Icon } from 'ol/style';
 import arc from 'arc';
 import LineString from 'ol/geom/LineString.js';
-import Attribution from 'ol/control/Attribution.js';
+
+// Grundeinstellungen
 
 let userCoordinates = [0, 0];
 
@@ -32,18 +27,6 @@ const map = new Map({
   view: mapview 
 });
 
-// Infobutton
-
- /* const attribution = new ol.control.Attribution({
-  className: 'ol-attribution',
-  label: 'i',
-  collapsible: true,
-  collapsed: true,
-  target: document.getElementById('attributionsbutton'),
-});
-
-map.addControl(attribution); */
-
 // Ende
 
 // Standortbestimmung
@@ -56,10 +39,8 @@ if ('geolocation' in navigator) {
         position.coords.latitude
       ]);
 
-      // Setze das Center und Zoom dynamisch auf die aktuellen Koordinaten
       mapview.setCenter(userCoordinates);
-      mapview.setZoom(9); // Zoomstufe auf 9 setzen
-      console.log('Aktueller Standort:', toLonLat(userCoordinates));
+      mapview.setZoom(9);
     },
     (error) => {
       console.error('Fehler bei der Geolocation:', error.message);
@@ -102,15 +83,6 @@ const destinationAirports = filteredRoutes.map(routes => {
   
 })
 
-console.log(destinationAirports);
-
-/* filteredRoutes.forEach(route => {
-  console.log({
-    ...route,
-    carriers: route.carriers.filter(carrier => allowedAirlines.includes(carrier.iata))
-  });
-}); */
-
 const airportFeatures = destinationAirports.map(airport => {
   return new Feature({
     geometry: new Point(fromLonLat([airport.longitude, airport.latitude])),
@@ -135,18 +107,68 @@ const dynamicStyleFunction = () => {
   });
 };
 
+// Ende
+
+// Cursoränderung
+
 map.on('pointermove', function (event) {
-  const hand = map.hasFeatureAtPixel(event.pixel);
-  map.getTargetElement().style.cursor = hand ? 'pointer' : ''; // Zeige den Cursor nur über Features
+  const pixel = event.pixel;
+  let cursorSet = false;
+
+  map.forEachFeatureAtPixel(pixel, function (feature) {
+    if (feature instanceof Feature) {
+      const iataCode = feature.get('iataCode');
+
+      if (iataCode) {
+        map.getTargetElement().style.cursor = 'pointer';
+        cursorSet = true;
+        return;
+      }
+    }
+  });
+
+  if (!cursorSet) {
+    map.getTargetElement().style.cursor = '';
+  }
 });
+
+// Ende
+
+// AirportLayerInitialisierung
 
 const airportLayer = new VectorLayer({
   source: new VectorSource({
     features: airportFeatures, 
-    attributions: "Routendaten" 
+    attributions: '<a href="https://github.com/Jonty/airline-route-data?tab=readme-ov-file" target="_blank">Routendaten</a>' 
   }),
   style: dynamicStyleFunction 
 });
+
+// Ende
+
+// Symbol ZRH
+
+const zurichAirport = {
+  iata: 'ZRH',
+  name: 'Zürich Flughafen',
+  latitude: 47.450604,
+  longitude: 8.561746,
+  city_name: 'Zürich',
+  country: 'Schweiz',
+};
+
+const zurichAirportFeature = new Feature({
+  geometry: new Point(fromLonLat([zurichAirport.longitude, zurichAirport.latitude])),
+  name: zurichAirport.name,
+  iataCode: zurichAirport.iata,
+  city: zurichAirport.city_name,
+  country: zurichAirport.country,
+  routes: []
+});
+
+zurichAirportFeature.setStyle(dynamicStyleFunction);
+
+airportLayer.getSource().addFeature(zurichAirportFeature);
 
 // Ende
 
@@ -260,9 +282,44 @@ searchInput.addEventListener('input', handleSearch);
 
 // Ende
 
-// Klick-Events auf Flughäfen
+// Flugroutenlayerdefinition (wird später dynamisch angepasst)
 
 const flightsSource = new VectorSource({});
+
+const LineStyleWithShadow = (lineColor) => [
+  new Style({
+    stroke: new Stroke({
+    }),
+  }),
+
+  new Style({
+    stroke: new Stroke({
+    }),
+  }),
+];
+    
+const flightsLayer = new VectorLayer({
+  source: flightsSource,
+  style: LineStyleWithShadow,
+});
+    
+map.addLayer(flightsLayer);
+    
+flightsLayer.setZIndex(1);
+    
+// Ende
+
+// Umrechnung min in Stunden und Minuten:
+
+function convertMin(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours}h ${mins}min`;
+}
+
+// Ende
+
+// Klick-Events auf Flughäfen
 
 map.on('singleclick', function (event) {
   
@@ -270,16 +327,23 @@ map.on('singleclick', function (event) {
     
     if (feature.getGeometry() instanceof Point) {
       const airportName = feature.get('name');
-      const airportInfoDiv = document.getElementById('Routendarstellung');
       const airportNameElement = document.getElementById('airportName');
-      const transformedCoords = feature.getGeometry().getCoordinates();
 
+      const airportInfoDiv = document.getElementById('Routendarstellung');
+      
+      const transformedCoords = feature.getGeometry().getCoordinates();
       const [longitude, latitude] = toLonLat(transformedCoords)
 
+      const airportCityName = feature.get('city');
+      const airportCityNameElement = document.getElementById('airportCity');
+
+      const airportCountry = feature.get('country');
+      const airportCountryElement = document.getElementById('airportCountry');
+
       const arcGenerator = new arc.GreatCircle(
-        { x: 8.561746, y: 47.450604 }, // Startkoordinaten (ZRH)
-        { x: longitude, y: latitude }, // Zielkoordinaten (geklickter Flughafen)
-        { name: 'ZRH to ' + feature.get('iataCode') } // Name mit IATA-Code 
+        { x: 8.561746, y: 47.450604 },
+        { x: longitude, y: latitude },
+        { name: 'ZRH to ' + feature.get('iataCode') }
       );
 
       const arcLine = arcGenerator.Arc(100, {offset: 10});
@@ -287,8 +351,17 @@ map.on('singleclick', function (event) {
       flightsSource.clear();
 
       const airportIATA = feature.get('iataCode');
+      const airportIATAElement = document.getElementById('airportIATA');
 
       const routes = filteredRoutes.filter(route => route.iata === airportIATA);
+      const routesElement = document.getElementById('airportRoutes');
+
+      const airlineColors = {
+        LX: '#000000',
+        WK: '#b0201d',
+        "2L": '#ee1200',
+        GM: '#ff2c1b',
+      };
 
       const airlineStyles = {
         "2L": `https://api.maptiler.com/maps/65d156a8-af46-46f7-ad98-ff3463fe78fb/style.json?key=${key}`,
@@ -297,10 +370,10 @@ map.on('singleclick', function (event) {
         LX: `https://api.maptiler.com/maps/8d0dabb7-9177-4bbf-ba93-f110c7b28c46/style.json?key=${key}`,
       };
 
-      // Standardkartenstil
       let selectedStyle = styleJson;
+      let selectedAirline = null;
+      let lineColor = '#EAE911';
 
-      // Prüfe, ob eine der Airlines enthalten ist und wähle den passenden Stil
       Object.keys(airlineStyles).forEach(airline => {
         const hasAirline = routes.some(route =>
           Array.isArray(route.carriers) && route.carriers.some(carrier => carrier.iata === airline)
@@ -308,11 +381,26 @@ map.on('singleclick', function (event) {
 
         if (hasAirline) {
           selectedStyle = airlineStyles[airline];
-          console.log(`Neuer Kartenstil für ${airline} wurde angewendet.`);
+          selectedAirline = airline;
+          lineColor = airlineColors[airline];
         }
       });
 
       apply(map, selectedStyle);
+
+      const dynamicLineStyle = [
+        new Style({
+          stroke: new Stroke({
+            color: lineColor,
+            width: 4,
+            lineCap: 'round',
+            lineJoin: 'round',
+          }),
+        }),
+      ];
+      
+      // Aktualisieren des Linienstils
+      flightsLayer.setStyle(dynamicLineStyle);
           
       arcLine.geometries.forEach(function (geometry) {
             const line = new LineString(geometry.coords);
@@ -324,7 +412,6 @@ map.on('singleclick', function (event) {
                 finished: false,
               }),
             );
-            console.log(flightsSource);
       });
 
       mapview.animate({
@@ -342,11 +429,9 @@ map.on('singleclick', function (event) {
           const offsetXPixels = mapSize[0] / 6;
           const offsetXCoords = offsetXPixels * resolution;
 
-          // Verschiebung berechnen
           const targetX = transformedCoords[0] + offsetXCoords;
           const targetY = transformedCoords[1];
 
-          // Verschiebung animieren
           mapview.animate({
             center: [targetX, targetY],
             duration: 500,
@@ -355,52 +440,33 @@ map.on('singleclick', function (event) {
       }, 2600);
 
       airportNameElement.textContent = airportName;
+      airportCityNameElement.textContent = airportCityName;
+      airportIATAElement.textContent = airportIATA;
+      airportCountryElement.textContent = airportCountry;
+      routesElement.innerHTML = '';
+
+      const airlineRoutes = routes
+        .map(route => ({
+          ...route,
+          carriers: route.carriers.filter(carrier => allowedAirlines.includes(carrier.iata))
+        }))
+        .filter(route => route.carriers.length > 0);
+
+      if (airlineRoutes.length > 0) {
+        airlineRoutes.forEach(route => {
+          const listItem = document.createElement('li');
+          const flightDuration = convertMin(route.min);
+          listItem.textContent = `Flug ab ${route.iata} (${route.km} km, ${flightDuration}) - Airline: ${route.carriers.map(c => c.name).join(', ')}`;
+          routesElement.appendChild(listItem);
+        });
+      } else {
+        routesElement.innerHTML = '<li>Keine Routen mit erlaubten Airlines gefunden.</li>';
+      }
+
       airportInfoDiv.style.display = 'block';
     }
   });
 });
-
-// Ende
-
-// Flugroute
-
-function offsetLine(geometry, offset) {
-  const coords = geometry.getCoordinates();
-  const newCoords = coords.map(([x, y]) => [x + offset, y - offset]); // Verschiebung
-  return new LineString(newCoords);
-}
-const LineStyleWithShadow = [
-  new Style({
-    stroke: new Stroke({
-      color: 'rgba(0, 0, 0, 0.5)',
-      width: 8,
-      lineCap: 'round',
-      lineJoin: 'round',
-    }),
-    geometry: function (feature) {
-      const geometry = feature.getGeometry();
-      return offsetLine(geometry, 75); 
-    },
-  }),
-  
-  new Style({
-    stroke: new Stroke({
-      color: '#EAE911',
-      width: 3,
-      lineCap: 'round',
-      lineJoin: 'round',
-    }),
-  }),
-];
-
-const flightsLayer = new VectorLayer({
-  source: flightsSource,
-  style: LineStyleWithShadow,
-});
-
-map.addLayer(flightsLayer);
-
-flightsLayer.setZIndex(1);
 
 // Ende
 
@@ -415,9 +481,23 @@ closeButton.addEventListener('click', function() {
   apply(map, styleJson);
   mapview.animate({
     center: userCoordinates,
-    zoom: 9,
-    duration: 4000,
+    zoom: 7,
+    duration: 1000,
   });
+});
+
+// Ende
+
+// Autor-Button
+ 
+document.getElementById("autor-button").addEventListener("click", function() {
+  const autorInfo = document.getElementById("autor-info");
+
+  if (autorInfo.style.display === "none" || autorInfo.style.display === "") {
+      autorInfo.style.display = "block";
+  } else {
+      autorInfo.style.display = "none";
+  }
 });
 
 // Ende

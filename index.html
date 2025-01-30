@@ -2,15 +2,15 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="https://openlayers.org/favicon.ico" />
+    <link rel="icon" type="image/png" href="Logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Using OpenLayers with Vite</title>
+    <title>Flugrouten</title>
   </head>
   <body>
     <header id="Titel">
       <h1>
         <img src="Logo.png" alt="Logo" style="width: 15px; height: 15px;">
-        Webkarte Flugrouten
+        Schweizer Flugrouten
       </h1>
     </header>
     <div id="map"></div>
@@ -24,6 +24,15 @@
       <button id="closeButton">
         <img src="SchliessButton.png" alt="schliessen" style="width: 20px; height: 20px;"/>
       </button>
+      <p><strong>Stadt:</strong> <span id="airportCity"></span></p>
+      <p><strong>IATA-Code:</strong> <span id="airportIATA"></span></p>
+      <p><strong>Land:</strong> <span id="airportCountry"></span></p>
+      <p><strong>Flugrouten nach ZRH:</strong></p>
+      <ul id="airportRoutes"></ul>
+    </div>
+    <div id="Autor">
+      <button id="autor-button">A</button>
+      <div id="autor-info">Erstellt von Fabrice Hirsiger, GMK21 im Rahmen des BBZH-Faches WebDA, 2024-2025</div>
     </div>
     <script type="module" src="./main.js"></script>
   </body>
