@@ -12,6 +12,6 @@
   "dependencies": {
     "arc": "^0.1.4",
     "ol": "latest",
-    "ol-mapbox-style": "12.4.0"
+    "ol-mapbox-style": "12.4.1"
   }
 }
